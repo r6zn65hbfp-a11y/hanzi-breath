@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片点击游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: white;
+            color: black;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            font-weight: normal;
+        }
+        
+        .setup-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #eee;
+        }
+        
+        .game-section {
+            display: none;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .file-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #f5f5f5;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+            margin-bottom: 15px;
+        }
+        
+        .file-label:hover {
+            background-color: #eaeaea;
+        }
+        
+        .position-input {
+            margin: 15px 0;
+        }
+        
+        .position-input input {
+            padding: 8px 12px;
+            width: 80px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background-color: #f5f5f5;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            background-color: #eaeaea;
+        }
+        
+        .display-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        #game-image {
+            max-width: 100%;
+            max-height: 500px;
+            cursor: crosshair;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #666;
+        }
+        
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            width: 300px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .bongo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .close-btn {
+            margin-top: 20px;
+            padding: 8px 16px;
+            background-color: #f5f5f5;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+        
+        .close-btn:hover {
+            background-color: #eaeaea;
+        }
+        
+        .coords-display {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>图片点击游戏</h1>
+        
+        <div class="setup-section" id="setup-section">
+            <p>设置游戏图片和正确位置</p>
+            <label for="image-upload" class="file-label">选择图片</label>
+            <input type="file" id="image-upload" accept="image/*">
+            
+            <div class="position-input">
+                <label>正确位置坐标:</label>
+                <input type="number" id="correct-x" placeholder="X坐标">
+                <input type="number" id="correct-y" placeholder="Y坐标">
+            </div>
+            
+            <div class="position-input">
+                <label>允许误差范围:</label>
+                <input type="number" id="tolerance" value="30" placeholder="像素">
+            </div>
+            
+            <button class="btn" id="start-game">开始游戏</button>
+        </div>
+        
+        <div class="game-section" id="game-section">
+            <div class="display-area">
+                <img id="game-image" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPuWbvuWDj+WKoOi9veWbvueJhzwvdGV4dD48L3N2Zz4=" alt="游戏图片">
+            </div>
+            
+            <p class="instructions">点击图片上的正确位置</p>
+            <p class="coords-display" id="coords-display">点击位置: (0, 0)</p>
+            
+            <button class="btn" id="reset-game">重新设置</button>
+        </div>
+    </div>
+    
+    <!-- 成功弹窗 -->
+    <div class="modal" id="success-modal">
+        <div class="modal-content">
+            <div class="bongo">bongo!</div>
+            <p>你找到了正确的位置！</p>
+            <button class="close-btn" id="close-modal">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageUpload = document.getElementById('image-upload');
+            const gameImage = document.getElementById('game-image');
+            const correctXInput = document.getElementById('correct-x');
+            const correctYInput = document.getElementById('correct-y');
+            const toleranceInput = document.getElementById('tolerance');
+            const startGameBtn = document.getElementById('start-game');
+            const resetGameBtn = document.getElementById('reset-game');
+            const setupSection = document.getElementById('setup-section');
+            const gameSection = document.getElementById('game-section');
+            const successModal = document.getElementById('success-modal');
+            const closeModal = document.getElementById('close-modal');
+            const coordsDisplay = document.getElementById('coords-display');
+            
+            let correctX = 0;
+            let correctY = 0;
+            let tolerance = 30;
+            let imageWidth = 0;
+            let imageHeight = 0;
+            
+            // 上传图片
+            imageUpload.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    gameImage.src = event.target.result;
+                    
+                    // 图片加载完成后获取实际尺寸
+                    gameImage.onload = function() {
+                        imageWidth = gameImage.naturalWidth;
+                        imageHeight = gameImage.naturalHeight;
+                        
+                        // 设置默认正确位置为图片中心
+                        correctXInput.value = Math.round(imageWidth / 2);
+                        correctYInput.value = Math.round(imageHeight / 2);
+                    };
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            // 开始游戏
+            startGameBtn.addEventListener('click', function() {
+                correctX = parseInt(correctXInput.value) || 0;
+                correctY = parseInt(correctYInput.value) || 0;
+                tolerance = parseInt(toleranceInput.value) || 30;
+                
+                if (!gameImage.src || gameImage.src.includes('data:image/svg+xml')) {
+                    alert('请先上传一张图片');
+                    return;
+                }
+                
+                if (correctX <= 0 || correctY <= 0) {
+                    alert('请设置正确的坐标位置');
+                    return;
+                }
+                
+                setupSection.style.display = 'none';
+                gameSection.style.display = 'block';
+            });
+            
+            // 重置游戏
+            resetGameBtn.addEventListener('click', function() {
+                setupSection.style.display = 'block';
+                gameSection.style.display = 'none';
+            });
+            
+            // 点击图片检查位置
+            gameImage.addEventListener('click', function(e) {
+                const rect = gameImage.getBoundingClientRect();
+                const scaleX = gameImage.naturalWidth / rect.width;
+                const scaleY = gameImage.naturalHeight / rect.height;
+                
+                // 计算点击位置在原始图片上的坐标
+                const clickX = Math.round((e.clientX - rect.left) * scaleX);
+                const clickY = Math.round((e.clientY - rect.top) * scaleY);
+                
+                // 显示点击坐标
+                coordsDisplay.textContent = `点击位置: (${clickX}, ${clickY}) | 正确位置: (${correctX}, ${correctY})`;
+                
+                // 检查是否点击在正确位置附近
+                const distance = Math.sqrt(
+                    Math.pow(clickX - correctX, 2) + 
+                    Math.pow(clickY - correctY, 2)
+                );
+                
+                if (distance <= tolerance) {
+                    successModal.style.display = 'flex';
+                }
+            });
+            
+            // 关闭弹窗
+            closeModal.addEventListener('click', function() {
+                successModal.style.display = 'none';
+            });
+            
+            // 点击模态框外部关闭
+            successModal.addEventListener('click', function(e) {
+                if (e.target === successModal) {
+                    successModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
